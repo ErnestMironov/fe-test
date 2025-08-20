@@ -2,7 +2,10 @@
 
 ## Overview
 
-Build a React component that displays two tables side-by-side, infinitely paginated, tables that showcase token data. The component should display cryptocurrency token data with real-time updates via WebSocket connections. You can use whatever you want for the UI as long as it looks decent.
+Build a React component that displays two tables side-by-side, infinitely paginated, tables that showcase token data. The component should display cryptocurrency token data with real-time updates via WebSocket connections. 
+
+this is how it should look: 
+<img width="2056" height="993" alt="Screenshot 2025-08-20 at 22 57 37" src="https://github.com/user-attachments/assets/2f94a923-e30b-4198-8934-fd289ef02d95" />
 
 ## Requirements
 
@@ -263,13 +266,6 @@ All incoming WebSocket message types are defined in `test-task-types.ts`. See `I
   - Exclude honeypots checkbox
 - Server-side sorting via API parameters
 
-#### Performance
-
-- Implement virtualization for large datasets (bonus)
-- Debounce filter changes
-- Optimize re-renders with React.memo/useMemo
-- Handle WebSocket reconnection
-
 #### UI/UX
 
 - Loading states
@@ -303,3 +299,4 @@ For ws connection use:
 
 You will have to use a no-cors extension from the chrome web store during development
 `https://chromewebstore.google.com/detail/allow-cors-access-control/` - or any other extension with similar functionality.
+
