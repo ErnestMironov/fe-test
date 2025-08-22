@@ -2,9 +2,9 @@
 
 ## Overview
 
-Build a React component that displays two tables side-by-side, infinitely paginated, tables that showcase token data. The component should display cryptocurrency token data with real-time updates via WebSocket connections. 
+Build a React component that displays two tables side-by-side, infinitely paginated, tables that showcase token data. The component should display cryptocurrency token data with real-time updates via WebSocket connections.
 
-this is how it should look: 
+this is how it should look:
 <img width="2056" height="993" alt="Screenshot 2025-08-20 at 22 57 37" src="https://github.com/user-attachments/assets/2f94a923-e30b-4198-8934-fd289ef02d95" />
 
 ## Requirements
@@ -31,16 +31,16 @@ interface TokenData {
   tokenSymbol: string;
   tokenAddress: string;
   pairAddress: string;
-  chain: "ETH" | "SOL" | "BASE" | "BSC";
+  chain: 'ETH' | 'SOL' | 'BASE' | 'BSC';
   exchange: string; // this is the router or virtualRouter fields
   priceUsd: number;
   volumeUsd: number;
   mcap: number;
   priceChangePcs: {
-    "5m": number;
-    "1h": number;
-    "6h": number;
-    "24h": number;
+    '5m': number;
+    '1h': number;
+    '6h': number;
+    '24h': number;
   };
   transactions: {
     buys: number;
@@ -108,7 +108,7 @@ Example tick event handling:
 
 ```typescript
 // From tick event data.swaps, get the latest non-outlier swap
-const latestSwap = swaps.filter((swap) => !swap.isOutlier).pop();
+const latestSwap = swaps.filter(swap => !swap.isOutlier).pop();
 if (latestSwap) {
   const newPrice = parseFloat(latestSwap.priceToken1Usd);
   const newMarketCap = totalSupply * newPrice;
@@ -152,17 +152,17 @@ Connect to WebSocket and subscribe to scanner updates:
 ```javascript
 // Subscribe to scanner data
 const subscribeMessage = {
-  event: "scanner-filter",
+  event: 'scanner-filter',
   data: {
-    rankBy: "volume", // or "age"
-    chain: "SOL",
+    rankBy: 'volume', // or "age"
+    chain: 'SOL',
     isNotHP: true,
   },
 };
 
 // Unsubscribe
 const unsubscribeMessage = {
-  event: "unsubscribe-scanner-filter",
+  event: 'unsubscribe-scanner-filter',
   data: {
     // same filter params as subscribe
   },
@@ -172,7 +172,7 @@ const unsubscribeMessage = {
 To send a ws subscription:
 
 ```javascript
-const ws = new WebSocket("wss://api-rs.dexcelerate.com/ws");
+const ws = new WebSocket('wss://api-rs.dexcelerate.com/ws');
 ws.send(JSON.stringify(subscribeMessage));
 ```
 
@@ -198,7 +198,7 @@ Example pair-stats handling:
 
 ```typescript
 // Handle pair-stats event
-if (pairStatsEvent.event === "pair-stats") {
+if (pairStatsEvent.event === 'pair-stats') {
   const data = pairStatsEvent.data;
   const updatedToken = {
     ...token,
@@ -218,7 +218,7 @@ if (pairStatsEvent.event === "pair-stats") {
 ```javascript
 ws.send(
   JSON.stringify({
-    event: "subscribe-pair-stats",
+    event: 'subscribe-pair-stats',
     data: {
       pair: token.pairAddress,
       token: token.tokenAddress,
@@ -299,4 +299,3 @@ For ws connection use:
 
 You will have to use a no-cors extension from the chrome web store during development
 `https://chromewebstore.google.com/detail/allow-cors-access-control/` - or any other extension with similar functionality.
-
