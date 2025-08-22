@@ -168,6 +168,11 @@ export interface ScannerResult {
   txns?: number | null;
   volume: string;
   webLink?: string | null;
+
+  // Audit properties
+  mintable?: boolean;
+  freezable?: boolean;
+  burned?: boolean;
 }
 
 /**

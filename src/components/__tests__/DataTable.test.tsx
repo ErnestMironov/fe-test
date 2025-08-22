@@ -3,26 +3,23 @@ import { describe, it, expect } from 'vitest';
 import { DataTable } from '../DataTable';
 
 describe('DataTable', () => {
+  it('renders trending table correctly', () => {
+    const { getByText } = render(<DataTable type="trending" />);
+
+    expect(getByText('Trending Tokens')).toBeInTheDocument();
+  });
+
+  it('renders new tokens table correctly', () => {
+    const { getByText } = render(<DataTable type="new" />);
+
+    expect(getByText('New Tokens')).toBeInTheDocument();
+  });
+
   it('renders table headers correctly', () => {
-    const { getByText } = render(<DataTable />);
+    const { getByText } = render(<DataTable type="trending" />);
 
-    expect(getByText('Name')).toBeInTheDocument();
-    expect(getByText('Email')).toBeInTheDocument();
-    expect(getByText('Role')).toBeInTheDocument();
-  });
-
-  it('renders table data correctly', () => {
-    const { getByText } = render(<DataTable />);
-
-    expect(getByText('John Doe')).toBeInTheDocument();
-    expect(getByText('jane@example.com')).toBeInTheDocument();
-    expect(getByText('Manager')).toBeInTheDocument();
-  });
-
-  it('renders the correct number of rows', () => {
-    const { getAllByRole } = render(<DataTable />);
-
-    const rows = getAllByRole('row');
-    expect(rows).toHaveLength(4);
+    expect(getByText('Token')).toBeInTheDocument();
+    expect(getByText('Price')).toBeInTheDocument();
+    expect(getByText('Age')).toBeInTheDocument();
   });
 });

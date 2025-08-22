@@ -7,21 +7,33 @@ import {
   type SortingState,
   createColumnHelper,
 } from '@tanstack/react-table';
-import { useInfiniteScannerData } from '../lib/hooks/useInfiniteScannerData';
+import {
+  useInfiniteTrendingTokens,
+  useInfiniteNewTokens,
+} from '../lib/hooks/useInfiniteScannerData';
 import { useWebSocket } from '../lib/hooks/useWebSocket';
 import type {
   ScannerResult,
-  SerdeRankBy,
   TickEventPayload,
   PairStatsMsgData,
   ScannerPairsEventPayload,
+  SupportedChainName,
 } from '../../test-task-types';
 import { chainIdToName } from '../../test-task-types';
-import { formatPrice } from '../lib/utils/priceFormatter';
+import {
+  formatPrice,
+  formatLargeNumberWithSuffix,
+} from '../lib/utils/priceFormatter';
+import {
+  TableFilters,
+  type TableFilters as TableFiltersType,
+} from './TableFilters';
 import EthIcon from '../assets/icons/eth.png';
 import SolIcon from '../assets/icons/sol.png';
 import BaseIcon from '../assets/icons/base.png';
 import BscIcon from '../assets/icons/bsc.png';
+import TelegramIcon from '../assets/icons/telegram.svg';
+import DiscordIcon from '../assets/icons/discord.svg';
 
 const columnHelper = createColumnHelper<ScannerResult>();
 
@@ -54,8 +66,8 @@ const columns = [
   columnHelper.accessor('token1Symbol', {
     header: 'Token',
     cell: info => (
-      <div className="relative flex items-center gap-3">
-        <div className="absolute inset-0 flex">
+      <div className="relative flex items-center gap-3 pl-3 py-2">
+        <div className="absolute inset-0 flex opacity-50">
           {(() => {
             const txns = info.row.original.txns;
             const buys = info.row.original.buys;
@@ -72,7 +84,7 @@ const columns = [
                     style={{
                       width: `${buyRatio}%`,
                       background:
-                        'linear-gradient(to bottom, rgba(34, 197, 94, 0.8), rgba(34, 197, 94, 0.2))',
+                        'linear-gradient(to bottom, rgba(34, 197, 94, 0.8), rgba(34, 197, 94, 0))',
                     }}
                   />
                   <div
@@ -80,7 +92,7 @@ const columns = [
                     style={{
                       width: `${sellRatio}%`,
                       background:
-                        'linear-gradient(to bottom, rgba(239, 68, 68, 0.8), rgba(239, 68, 68, 0.2))',
+                        'linear-gradient(to bottom, rgba(239, 68, 68, 0.8), rgba(239, 68, 68, 0))',
                     }}
                   />
                 </>
@@ -90,51 +102,83 @@ const columns = [
           })()}
         </div>
         <div className="relative z-10 flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-xs font-bold">
-            {info.getValue().charAt(0)}
-          </div>
+          {info.row.original.token1ImageUri ? (
+            <img
+              src={info.row.original.token1ImageUri}
+              alt={info.row.original.token1Symbol}
+              className="size-8 rounded-full object-cover object-center"
+            />
+          ) : (
+            <div className="size-8 rounded-full bg-[#121417] flex items-center justify-center">
+              <span className="text-xs">
+                {info.row.original.token1Symbol.charAt(0)}
+              </span>
+            </div>
+          )}
           <div className="flex flex-col">
             <div className="flex items-center gap-1">
-              <span className="text-xs text-gray-500 row-counter">#</span>
+              <span className="text-xs row-counter">#</span>
               <span className="font-medium text-sm">
                 {info.row.original.token1Symbol}
               </span>
-              <span className="text-gray-400">/</span>
+              <span>/</span>
               <span className="font-medium text-sm">
                 {info.row.original.token0Symbol}
               </span>
             </div>
             <div className="flex items-center gap-1 mt-1">
               <NetworkLogo chainId={info.row.original.chainId} />
-              <div className="w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
-                <span className="text-white text-xs">🔒</span>
-              </div>
-              <div className="w-4 h-4 rounded-full bg-pink-500 flex items-center justify-center">
-                <span className="text-white text-xs">🔥</span>
-              </div>
-              <div className="w-4 h-4 rounded-full bg-gray-600 flex items-center justify-center">
-                <span className="text-white text-xs">𝕏</span>
-              </div>
-              <div className="w-4 h-4 rounded-full bg-gray-600 flex items-center justify-center">
-                <span className="text-white text-xs">✈</span>
-              </div>
-              <div className="w-4 h-4 rounded-full bg-gray-600 flex items-center justify-center">
-                <span className="text-white text-xs">🌐</span>
-              </div>
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              {(() => {
-                const txns = info.row.original.txns;
-                const buys = info.row.original.buys;
-                const sells = info.row.original.sells;
+              {/* Discord Link */}
+              {info.row.original.discordLink && (
+                <a
+                  href={info.row.original.discordLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-4 h-4 rounded-full bg-white flex items-center justify-center hover:bg-purple-600 transition-colors cursor-pointer"
+                  title="Discord"
+                >
+                  <img src={DiscordIcon} alt="Discord" className="w-4 h-4" />
+                </a>
+              )}
 
-                if (txns && buys && sells && txns > 0) {
-                  const buyRatio = ((buys / txns) * 100).toFixed(0);
-                  const sellRatio = ((sells / txns) * 100).toFixed(0);
-                  return `${buyRatio}% / ${sellRatio}%`;
-                }
-                return 'N/A';
-              })()}
+              {/* Telegram Link */}
+              {info.row.original.telegramLink && (
+                <a
+                  href={info.row.original.telegramLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-4 h-4 rounded-full bg-pink-500 flex items-center justify-center hover:bg-pink-600 transition-colors cursor-pointer"
+                  title="Telegram"
+                >
+                  <img src={TelegramIcon} alt="Telegram" className="w-4 h-4" />
+                </a>
+              )}
+
+              {/* Twitter/X Link */}
+              {info.row.original.twitterLink && (
+                <a
+                  href={info.row.original.twitterLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-4 h-4 rounded-full bg-gray-600 flex items-center justify-center hover:bg-gray-700 transition-colors cursor-pointer"
+                  title="Twitter/X"
+                >
+                  <span className="text-white text-xs">𝕏</span>
+                </a>
+              )}
+
+              {/* Website Link */}
+              {info.row.original.webLink && (
+                <a
+                  href={info.row.original.webLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-4 h-4 rounded-full bg-gray-600 flex items-center justify-center hover:bg-gray-700 transition-colors cursor-pointer"
+                  title="Website"
+                >
+                  <span className="text-white text-xs">🌐</span>
+                </a>
+              )}
             </div>
           </div>
         </div>
@@ -168,11 +212,31 @@ const columns = [
   }),
   columnHelper.accessor('volume', {
     header: 'Volume',
-    cell: info => info.getValue(),
+    cell: info => formatLargeNumberWithSuffix(info.getValue(), '$'),
   }),
   columnHelper.accessor('txns', {
     header: 'Transactions',
-    cell: info => info.getValue() || 'N/A',
+    cell: info => {
+      const value = info.getValue();
+      const buys = info.row.original.buys;
+      const sells = info.row.original.sells;
+
+      return (
+        <div className="flex flex-col items-center gap-1">
+          <span>{formatLargeNumberWithSuffix(value)}</span>
+
+          <span className="text-xs text-gray-500">
+            <span className="text-green-500">
+              {formatLargeNumberWithSuffix(buys)}
+            </span>
+            /
+            <span className="text-red-500">
+              {formatLargeNumberWithSuffix(sells)}
+            </span>
+          </span>
+        </div>
+      );
+    },
   }),
   columnHelper.accessor('buyFee', {
     header: 'Tax',
@@ -187,101 +251,264 @@ const columns = [
   }),
   columnHelper.accessor('currentMcap', {
     header: 'Marketcap',
-    cell: info => {
-      const value = info.getValue();
-      if (!value || value === '0') return 'N/A';
-
-      const numValue = parseFloat(value);
-      if (numValue >= 1e9) {
-        return `$${(numValue / 1e9).toFixed(2)}B`;
-      } else if (numValue >= 1e6) {
-        return `$${(numValue / 1e6).toFixed(2)}M`;
-      } else if (numValue >= 1e3) {
-        return `$${(numValue / 1e3).toFixed(2)}K`;
-      } else {
-        return `$${numValue.toFixed(2)}`;
-      }
-    },
+    cell: info => formatLargeNumberWithSuffix(info.getValue(), '$'),
   }),
   columnHelper.accessor('liquidity', {
     header: 'Liquidity',
-    cell: info => info.getValue(),
+    cell: info => formatLargeNumberWithSuffix(info.getValue(), '$'),
   }),
   columnHelper.accessor('diff5M', {
     header: '5M',
     cell: info => {
       const value = info.getValue();
-      if (
-        (typeof value === 'string' && value.includes('MB')) ||
-        value?.includes('KB')
-      ) {
-        return value;
+
+      if (!value || Number(value) === 0)
+        return <span className="text-gray-500">0%</span>;
+
+      if (Number(value) > 0) {
+        return <span className="text-green-500">+{value}%</span>;
       }
-      return formatPrice(value);
+
+      if (Number(value) < 0) {
+        return <span className="text-red-500">{value}%</span>;
+      }
+
+      return `${value}%`;
     },
   }),
   columnHelper.accessor('diff1H', {
     header: '1H',
     cell: info => {
       const value = info.getValue();
-      if (
-        (typeof value === 'string' && value.includes('MB')) ||
-        value?.includes('KB')
-      ) {
-        return value;
+
+      if (!value || Number(value) === 0)
+        return <span className="text-gray-500">0%</span>;
+
+      if (Number(value) > 0) {
+        return <span className="text-green-500">+{value}%</span>;
       }
-      return formatPrice(value);
+
+      if (Number(value) < 0) {
+        return <span className="text-red-500">{value}%</span>;
+      }
+
+      return `${value}%`;
     },
   }),
   columnHelper.accessor('diff6H', {
     header: '6H',
     cell: info => {
       const value = info.getValue();
-      if (
-        (typeof value === 'string' && value.includes('MB')) ||
-        value?.includes('KB')
-      ) {
-        return value;
+
+      if (!value || Number(value) === 0)
+        return <span className="text-gray-500">0%</span>;
+
+      if (Number(value) > 0) {
+        return <span className="text-green-500">+{value}%</span>;
       }
-      return formatPrice(value);
+
+      if (Number(value) < 0) {
+        return <span className="text-red-500">{value}%</span>;
+      }
+
+      return `${value}%`;
     },
   }),
   columnHelper.accessor('diff24H', {
     header: '24H',
     cell: info => {
       const value = info.getValue();
-      if (
-        (typeof value === 'string' && value.includes('MB')) ||
-        value?.includes('KB')
-      ) {
-        return value;
+
+      if (!value || Number(value) === 0)
+        return <span className="text-gray-500">0%</span>;
+
+      if (Number(value) > 0) {
+        return <span className="text-green-500">+{value}%</span>;
       }
-      return formatPrice(value);
+
+      if (Number(value) < 0) {
+        return <span className="text-red-500">{value}%</span>;
+      }
+
+      return `${value}%`;
     },
   }),
   columnHelper.accessor('contractVerified', {
     header: 'Audit',
     cell: info => {
-      const verified = info.getValue();
-      const renounced = info.row.original.contractRenounced;
       const honeyPot = info.row.original.honeyPot;
+      const mintable = info.row.original.mintable;
+      const freezable = info.row.original.freezable;
+      const burned = info.row.original.burned;
 
-      if (honeyPot) return '🚨 Honeypot';
-      if (verified && renounced) return '✅ Verified';
-      if (verified) return '✅ Verified';
-      if (renounced) return '⚠️ Renounced';
-      return '❌ Unverified';
+      return (
+        <div className="flex flex-col items-center space-y-1">
+          <div className="flex items-center space-x-2">
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-4 h-4 rounded-full border-2 ${
+                  mintable
+                    ? 'border-teal-400 bg-teal-400'
+                    : 'border-red-500 bg-red-500'
+                } flex items-center justify-center`}
+              >
+                {mintable ? (
+                  <svg
+                    className="w-2.5 h-2.5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <span className="text-white text-xs font-bold relative bottom-[0.05rem]">
+                    ×
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-white mt-1">Mintable</span>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-4 h-4 rounded-full border-2 ${
+                  freezable
+                    ? 'border-teal-400 bg-teal-400'
+                    : 'border-red-500 bg-red-500'
+                } flex items-center justify-center`}
+              >
+                {freezable ? (
+                  <svg
+                    className="w-2.5 h-2.5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <span className="text-white text-xs font-bold relative bottom-[0.05rem]">
+                    ×
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-white mt-1">Freezeable</span>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-4 h-4 rounded-full border-2 ${
+                  burned
+                    ? 'border-teal-400 bg-teal-400'
+                    : 'border-red-500 bg-red-500'
+                } flex items-center justify-center`}
+              >
+                {burned ? (
+                  <svg
+                    className="w-2.5 h-2.5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <span className="text-white text-xs font-bold relative bottom-[0.05rem]">
+                    ×
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-white mt-1">Burned</span>
+            </div>
+
+            <div className="flex flex-col items-center">
+              <div
+                className={`w-4 h-4 rounded-full border-2 ${
+                  honeyPot
+                    ? 'border-teal-400 bg-teal-400'
+                    : 'border-red-500 bg-red-500'
+                } flex items-center justify-center`}
+              >
+                {honeyPot ? (
+                  <svg
+                    className="w-2.5 h-2.5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <span className="text-white text-xs font-bold relative bottom-[0.05rem]">
+                    ×
+                  </span>
+                )}
+              </div>
+              <span className="text-xs text-white mt-1">Honeypot</span>
+            </div>
+          </div>
+        </div>
+      );
     },
   }),
 ];
 
-export const DataTable = memo(function DataTable() {
+interface DataTableProps {
+  type: 'trending' | 'new';
+}
+
+export const DataTable = memo(function DataTable({ type }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [tableData, setTableData] = useState<ScannerResult[]>([]);
   const [visibleTokens, setVisibleTokens] = useState<Set<string>>(new Set());
   const [subscribedTokens, setSubscribedTokens] = useState<Set<string>>(
     new Set()
   );
+  const [filters, setFilters] = useState<TableFiltersType>({
+    chain: null,
+    minVolume: null,
+    maxAge: null,
+    minMarketCap: null,
+    excludeHoneypots: false,
+  });
+
+  const handleFilterChange = (
+    key: keyof TableFiltersType,
+    value: SupportedChainName | number | boolean | null
+  ) => {
+    console.log(`[${type}] Filter change:`, key, '=', value);
+    setFilters(prev => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleClearFilters = () => {
+    console.log(`[${type}] Clearing filters`);
+    setFilters({
+      chain: null,
+      minVolume: null,
+      maxAge: null,
+      minMarketCap: null,
+      excludeHoneypots: false,
+    });
+  };
+  const trendingData = useInfiniteTrendingTokens();
+  const newTokensData = useInfiniteNewTokens();
+
   const {
     data: infiniteData,
     isLoading,
@@ -290,10 +517,7 @@ export const DataTable = memo(function DataTable() {
     hasNextPage,
     isFetchingNextPage,
     refetch,
-  } = useInfiniteScannerData({
-    orderBy: sorting[0]?.desc ? 'desc' : 'asc',
-    rankBy: getRankByFromColumn(sorting[0]?.id),
-  });
+  } = type === 'trending' ? trendingData : newTokensData;
 
   const {
     subscribeToMultiplePairs,
@@ -307,6 +531,55 @@ export const DataTable = memo(function DataTable() {
     if (!infiniteData?.pages) return [];
     return infiniteData.pages.flatMap(page => page.pairs || []);
   }, [infiniteData]);
+
+  const filteredData = useMemo(() => {
+    console.log(`[${type}] Filtering data with filters:`, filters);
+    console.log(`[${type}] Raw data length:`, memoizedData.length);
+
+    const filtered = memoizedData.filter(token => {
+      // Chain filter
+      if (filters.chain && chainIdToName(token.chainId) !== filters.chain) {
+        return false;
+      }
+
+      // Volume filter
+      if (
+        filters.minVolume &&
+        parseFloat(token.volume || '0') < filters.minVolume
+      ) {
+        return false;
+      }
+
+      // Age filter
+      if (filters.maxAge) {
+        const tokenAge = new Date(token.age);
+        const now = new Date();
+        const ageInHours =
+          (now.getTime() - tokenAge.getTime()) / (1000 * 60 * 60);
+        if (ageInHours > filters.maxAge) {
+          return false;
+        }
+      }
+
+      // Market Cap filter
+      if (filters.minMarketCap) {
+        const marketCap = parseFloat(calculateMarketCap(token));
+        if (marketCap < filters.minMarketCap) {
+          return false;
+        }
+      }
+
+      // Honeypot filter
+      if (filters.excludeHoneypots && token.honeyPot) {
+        return false;
+      }
+
+      return true;
+    });
+
+    console.log(`[${type}] Filtered data length:`, filtered.length);
+    return filtered;
+  }, [memoizedData, filters, type]);
 
   const calculateMarketCap = (token: ScannerResult): string => {
     if (parseFloat(token.currentMcap || '0') > 0) {
@@ -325,12 +598,36 @@ export const DataTable = memo(function DataTable() {
   };
 
   useEffect(() => {
-    const processedData = memoizedData.map(token => ({
+    const processedData = filteredData.map(token => ({
       ...token,
       currentMcap: calculateMarketCap(token),
     }));
     setTableData(processedData);
-  }, [memoizedData]);
+
+    const currentTokenIds = new Set(
+      processedData.map(token => token.pairAddress)
+    );
+
+    setVisibleTokens(prev => {
+      const filtered = new Set<string>();
+      prev.forEach(tokenId => {
+        if (currentTokenIds.has(tokenId)) {
+          filtered.add(tokenId);
+        }
+      });
+      return filtered;
+    });
+
+    setSubscribedTokens(prev => {
+      const filtered = new Set<string>();
+      prev.forEach(tokenId => {
+        if (currentTokenIds.has(tokenId)) {
+          filtered.add(tokenId);
+        }
+      });
+      return filtered;
+    });
+  }, [filteredData]);
 
   useEffect(() => {
     if (tableData.length === 0) return;
@@ -460,6 +757,7 @@ export const DataTable = memo(function DataTable() {
                 honeyPot: statsData.pair.token1IsHoneypot,
                 mintable: statsData.pair.mintAuthorityRenounced,
                 freezable: statsData.pair.freezeAuthorityRenounced,
+                burned: parseFloat(statsData.pair.burnedSupply || '0') > 0,
               };
             }
             return token;
@@ -518,6 +816,10 @@ export const DataTable = memo(function DataTable() {
       if (newSorting.length > 0) {
         refetch();
       }
+
+      console.log('Sorting changed, clearing subscriptions');
+      setVisibleTokens(new Set());
+      setSubscribedTokens(new Set());
     },
     state: {
       sorting,
@@ -525,42 +827,13 @@ export const DataTable = memo(function DataTable() {
     manualSorting: true,
   });
 
-  function getRankByFromColumn(columnId?: string): SerdeRankBy {
-    switch (columnId) {
-      case 'price':
-        return 'price24H';
-      case 'volume':
-        return 'volume';
-      case 'txns':
-        return 'txns';
-      case 'currentMcap':
-        return 'mcap';
-      case 'liquidity':
-        return 'liquidity';
-      case 'age':
-        return 'age';
-      case 'diff5M':
-        return 'price5M';
-      case 'diff1H':
-        return 'price1H';
-      case 'diff6H':
-        return 'price6H';
-      case 'diff24H':
-        return 'price24H';
-      default:
-        return 'volume';
-    }
-  }
-
   if (isLoading) {
     return (
       <div className="w-full h-screen flex flex-col p-4">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          Scanner Results Table
-        </h2>
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden flex-1 min-h-0">
+        <h2 className="text-2xl font-bold mb-6">Scanner Results Table</h2>
+        <div className="rounded-lg shadow-lg overflow-hidden flex-1 min-h-0">
           <div className="h-full flex items-center justify-center">
-            <div className="text-lg text-gray-600">Loading scanner data...</div>
+            <div className="text-lg">Loading scanner data...</div>
           </div>
         </div>
       </div>
@@ -570,10 +843,8 @@ export const DataTable = memo(function DataTable() {
   if (error) {
     return (
       <div className="w-full h-screen flex flex-col p-4">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">
-          Scanner Results Table
-        </h2>
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden flex-1 min-h-0">
+        <h2 className="text-2xl font-bold mb-6">Scanner Results Table</h2>
+        <div className="rounded-lg shadow-lg overflow-hidden flex-1 min-h-0">
           <div className="h-full flex items-center justify-center">
             <div className="text-lg text-red-600">
               Error loading data: {error.message}
@@ -592,17 +863,23 @@ export const DataTable = memo(function DataTable() {
         }
       `}</style>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">
-          Scanner Results Table
+        <h2 className="text-2xl font-bold">
+          {type === 'trending' ? 'Trending Tokens' : 'New Tokens'}
         </h2>
         {infiniteData && (
-          <div className="text-sm text-gray-600">
-            {memoizedData.length.toLocaleString()} /{' '}
+          <div className="text-sm">
+            {filteredData.length.toLocaleString()} /{' '}
             {infiniteData.pages[0]?.totalRows?.toLocaleString() || 0} rows
           </div>
         )}
       </div>
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden flex-1 min-h-0">
+      <TableFilters
+        tableId={`table-${type}`}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        onClearFilters={handleClearFilters}
+      />
+      <div className="rounded-lg shadow-lg overflow-hidden flex-1 min-h-0">
         <div
           className="h-full overflow-auto"
           onScroll={e => {
@@ -619,13 +896,15 @@ export const DataTable = memo(function DataTable() {
           }}
         >
           <table className="w-full border-collapse min-w-max">
-            <thead className="sticky top-0 z-10 bg-gray-50">
+            <thead className="sticky top-0 z-[20] bg-[#22262b]">
               {table.getHeaderGroups().map(headerGroup => (
-                <tr key={headerGroup.id} className="bg-gray-50">
-                  {headerGroup.headers.map(header => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header, index) => (
                     <th
                       key={header.id}
-                      className="px-2.5 py-1 text-xs font-medium text-gray-700 text-center border-b border-gray-200 cursor-pointer hover:bg-gray-100 relative"
+                      className={`px-2.5 py-1 text-md font-medium text-center border-b border-[#343a41] cursor-pointer relative ${
+                        index === 0 ? 'border-l border-[#343a41]' : ''
+                      } border-r border-[#343a41]`}
                       onClick={header.column.getToggleSortingHandler()}
                     >
                       <div className="flex items-center justify-center gap-1">
@@ -650,7 +929,7 @@ export const DataTable = memo(function DataTable() {
               {table.getRowModel().rows.map(row => (
                 <tr
                   key={row.id}
-                  className="hover:bg-gray-50 odd:bg-gray-100"
+                  className=" even:bg-[#121417] odd:bg-black hover:bg-[#0b1c22]"
                   style={{ counterIncrement: 'row-number' }}
                   ref={el => {
                     if (!el) return;
@@ -684,10 +963,12 @@ export const DataTable = memo(function DataTable() {
                     return () => observer.disconnect();
                   }}
                 >
-                  {row.getVisibleCells().map(cell => (
+                  {row.getVisibleCells().map((cell, index) => (
                     <td
                       key={cell.id}
-                      className="px-2.5 py-1 whitespace-nowrap text-xs text-gray-900 text-center border-b border-gray-200"
+                      className={`whitespace-nowrap text-xs text-center border-b border-[#343a41] ${
+                        index === 0 ? 'border-l border-[#343a41]' : ''
+                      } border-r border-[#343a41]`}
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
@@ -706,10 +987,10 @@ export const DataTable = memo(function DataTable() {
             </div>
           )}
 
-          {!hasNextPage && memoizedData.length > 0 && (
+          {!hasNextPage && filteredData.length > 0 && (
             <div className="flex justify-center items-center py-4">
               <div className="text-sm text-gray-500">
-                Loaded {memoizedData.length.toLocaleString()} of{' '}
+                Loaded {filteredData.length.toLocaleString()} of{' '}
                 {infiniteData?.pages[0]?.totalRows?.toLocaleString() || 0} total
                 rows
               </div>

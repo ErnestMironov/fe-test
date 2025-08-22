@@ -63,3 +63,31 @@ export function formatPriceForTable(price: string | number): string {
 
   return formatted;
 }
+
+/**
+ * Formats large numbers with letter suffixes (B, M, K) for better readability
+ */
+export function formatLargeNumberWithSuffix(
+  value: string | number | null | undefined,
+  prefix = ''
+): string {
+  if (value === null || value === undefined) {
+    return 'N/A';
+  }
+
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+
+  if (isNaN(numValue) || numValue === 0) {
+    return 'N/A';
+  }
+
+  if (numValue >= 1e9) {
+    return `${prefix}${(numValue / 1e9).toFixed(2)}B`;
+  } else if (numValue >= 1e6) {
+    return `${prefix}${(numValue / 1e6).toFixed(2)}M`;
+  } else if (numValue >= 1e3) {
+    return `${prefix}${(numValue / 1e3).toFixed(2)}K`;
+  } else {
+    return `${prefix}${numValue.toFixed(2)}`;
+  }
+}
