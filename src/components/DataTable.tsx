@@ -471,7 +471,9 @@ interface DataTableProps {
 }
 
 export const DataTable = memo(function DataTable({ type }: DataTableProps) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(
+    type === 'trending' ? [{ id: 'volume', desc: true }] : []
+  );
   const [tableData, setTableData] = useState<ScannerResult[]>([]);
   const [visibleTokens, setVisibleTokens] = useState<Set<string>>(new Set());
   const [subscribedTokens, setSubscribedTokens] = useState<Set<string>>(
@@ -516,7 +518,6 @@ export const DataTable = memo(function DataTable({ type }: DataTableProps) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    refetch,
   } = type === 'trending' ? trendingData : newTokensData;
 
   const {
@@ -811,20 +812,11 @@ export const DataTable = memo(function DataTable({ type }: DataTableProps) {
     columns: memoizedColumns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onSortingChange: newSorting => {
-      setSorting(newSorting);
-      if (newSorting.length > 0) {
-        refetch();
-      }
-
-      console.log('Sorting changed, clearing subscriptions');
-      setVisibleTokens(new Set());
-      setSubscribedTokens(new Set());
-    },
+    onSortingChange: setSorting,
     state: {
       sorting,
     },
-    manualSorting: true,
+    manualSorting: false,
   });
 
   if (isLoading) {
