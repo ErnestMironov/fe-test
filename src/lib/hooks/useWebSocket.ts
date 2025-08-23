@@ -25,9 +25,7 @@ export function useWebSocket() {
   const handleMessage = useCallback((data: string) => {
     try {
       const message = JSON.parse(data);
-      console.log('Parsed WebSocket message:', message);
 
-      // Notify all registered callbacks
       messageCallbacksRef.current.forEach(callback => {
         try {
           callback(message);
@@ -35,22 +33,6 @@ export function useWebSocket() {
           console.error('Error in message callback:', error);
         }
       });
-
-      // Here we'll add message handling logic later
-      // For now, just log the message type
-      switch (message.event) {
-        case 'tick':
-          console.log('Tick event received for pair:', message.data.pair);
-          break;
-        case 'pair-stats':
-          console.log('Pair-stats event received for pair:', message.data.pair);
-          break;
-        case 'scanner-pairs':
-          console.log('Scanner-pairs event received');
-          break;
-        default:
-          console.log('Unknown event type:', message.event);
-      }
     } catch (error) {
       console.error('Failed to parse WebSocket message:', error);
     }
@@ -65,12 +47,10 @@ export function useWebSocket() {
       wsRef.current = new WebSocket('wss://api-rs.dexcelerate.com/ws');
 
       wsRef.current.onopen = () => {
-        console.log('WebSocket connected');
         setIsConnected(true);
       };
 
-      wsRef.current.onclose = event => {
-        console.log('WebSocket disconnected:', event.code, event.reason);
+      wsRef.current.onclose = () => {
         setIsConnected(false);
         setActiveSubscriptions(new Set());
       };
@@ -81,7 +61,6 @@ export function useWebSocket() {
       };
 
       wsRef.current.onmessage = event => {
-        console.log('WebSocket message received:', event.data);
         handleMessage(event.data);
       };
     } catch (error) {
@@ -106,7 +85,6 @@ export function useWebSocket() {
       const subscriptionKey = `pair-${data.pair}-${data.token}`;
 
       if (activeSubscriptions.has(subscriptionKey)) {
-        console.log('Already subscribed to pair:', subscriptionKey);
         return;
       }
 
@@ -117,7 +95,6 @@ export function useWebSocket() {
 
       wsRef.current.send(JSON.stringify(message));
       setActiveSubscriptions(prev => new Set(prev).add(subscriptionKey));
-      console.log('Subscribed to pair:', subscriptionKey);
     },
     [activeSubscriptions]
   );
@@ -132,7 +109,6 @@ export function useWebSocket() {
       const subscriptionKey = `pair-stats-${data.pair}-${data.token}`;
 
       if (activeSubscriptions.has(subscriptionKey)) {
-        console.log('Already subscribed to pair-stats:', subscriptionKey);
         return;
       }
 
@@ -143,7 +119,6 @@ export function useWebSocket() {
 
       wsRef.current.send(JSON.stringify(message));
       setActiveSubscriptions(prev => new Set(prev).add(subscriptionKey));
-      console.log('Subscribed to pair-stats:', subscriptionKey);
     },
     [activeSubscriptions]
   );
@@ -171,7 +146,6 @@ export function useWebSocket() {
         newSet.delete(subscriptionKey);
         return newSet;
       });
-      console.log('Unsubscribed from pair:', subscriptionKey);
     },
     [activeSubscriptions]
   );
@@ -199,7 +173,6 @@ export function useWebSocket() {
         newSet.delete(subscriptionKey);
         return newSet;
       });
-      console.log('Unsubscribed from pair-stats:', subscriptionKey);
     },
     [activeSubscriptions]
   );
@@ -255,7 +228,6 @@ export function useWebSocket() {
       };
 
       wsRef.current.send(JSON.stringify(message));
-      console.log('Subscribed to scanner-filter:', filterParams);
     },
     []
   );

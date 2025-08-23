@@ -61,7 +61,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-5">
-        {/* Chain Selection */}
         <div className="space-y-1.5">
           <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
             Chain
@@ -99,7 +98,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({
           </div>
         </div>
 
-        {/* Minimum Volume Filter */}
         <div className="space-y-1.5">
           <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
             Min Volume (24h)
@@ -114,7 +112,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({
           />
         </div>
 
-        {/* Maximum Age Filter */}
         <div className="space-y-1.5">
           <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
             Max Age (hours)
@@ -129,7 +126,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({
           />
         </div>
 
-        {/* Minimum Market Cap Filter */}
         <div className="space-y-1.5">
           <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
             Min Market Cap
@@ -144,7 +140,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({
           />
         </div>
 
-        {/* Honeypot Filter */}
         <div className="space-y-1.5">
           <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
             Honeypot Filter
@@ -193,7 +188,6 @@ export const TableFilters: React.FC<TableFiltersProps> = ({
           </div>
         </div>
 
-        {/* Clear Filters Button */}
         <div className="space-y-1.5">
           <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
             Actions

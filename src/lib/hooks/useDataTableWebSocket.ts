@@ -30,7 +30,6 @@ export const useDataTableWebSocket = ({
     addMessageListener,
   } = useWebSocket();
 
-  // Scanner filter subscription
   useEffect(() => {
     if (tableData.length === 0) return;
 
@@ -43,11 +42,9 @@ export const useDataTableWebSocket = ({
       },
     };
 
-    console.log('🔄 Subscribing to scanner-filter:', scannerFilterMessage);
     subscribeToScannerFilter(scannerFilterMessage.data);
   }, [tableData, subscribeToScannerFilter]);
 
-  // Token pair subscriptions management
   useEffect(() => {
     if (tableData.length === 0) return;
 
@@ -80,10 +77,6 @@ export const useDataTableWebSocket = ({
       .filter(Boolean) as Array<{ pair: string; token: string; chain: string }>;
 
     if (tokensToSubscribe.length > 0) {
-      console.log(
-        '📡 Subscribing to visible tokens:',
-        tokensToSubscribe.length
-      );
       subscribeToMultiplePairs(tokensToSubscribe);
       setSubscribedTokens(prev => {
         const newSet = new Set(prev);
@@ -93,10 +86,6 @@ export const useDataTableWebSocket = ({
     }
 
     if (tokensToUnsubscribe.length > 0) {
-      console.log(
-        '📴 Unsubscribing from hidden tokens:',
-        tokensToUnsubscribe.length
-      );
       unsubscribeFromMultiplePairs(tokensToUnsubscribe);
       setSubscribedTokens(prev => {
         const newSet = new Set(prev);
@@ -113,11 +102,8 @@ export const useDataTableWebSocket = ({
     setSubscribedTokens,
   ]);
 
-  // WebSocket message handling
   useEffect(() => {
     const unsubscribe = addMessageListener(message => {
-      console.log('📨 WebSocket message in DataTable:', message);
-
       if (message.event === 'tick') {
         const tickData = message.data as TickEventPayload;
 
@@ -129,11 +115,6 @@ export const useDataTableWebSocket = ({
                 ?.pop();
 
               if (latestSwap) {
-                console.log(
-                  '💰 Updating token price:',
-                  latestSwap.priceToken1Usd
-                );
-
                 const totalSupply = parseFloat(
                   token.token1TotalSupplyFormatted || '0'
                 );
@@ -158,8 +139,6 @@ export const useDataTableWebSocket = ({
         setTableData(prevData => {
           return prevData.map(token => {
             if (token.pairAddress === statsData.pair.pairAddress) {
-              console.log('🔍 Updating token audit info');
-
               return {
                 ...token,
                 contractVerified: statsData.pair.isVerified,
@@ -177,7 +156,6 @@ export const useDataTableWebSocket = ({
 
       if (message.event === 'scanner-pairs') {
         const scannerData = message.data as ScannerPairsEventPayload;
-        console.log('🆕 Received scanner-pairs update:', scannerData);
 
         setTableData(prevData => {
           const updatedData = scannerData.results.pairs.map(newToken => {
@@ -203,11 +181,6 @@ export const useDataTableWebSocket = ({
             newPairAddresses.has(token.pairAddress)
           );
 
-          console.log(
-            `📊 Updated table data: ${filteredData.length} tokens (removed ${
-              updatedData.length - filteredData.length
-            })`
-          );
           return filteredData;
         });
       }

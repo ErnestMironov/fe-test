@@ -13,9 +13,9 @@ src/
 │   ├── hooks/          # Custom React hooks
 │   ├── api/            # API client and types
 │   └── utils/          # Helper functions
-├── assets/             # Icons and images
-│   └── icons/          # Network and social icons
-└── test/               # Test setup and utilities
+└── assets/             # Icons and images
+    └── icons/          # Network and social icons
+
 ```
 
 ## Quick Start

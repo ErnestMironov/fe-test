@@ -40,7 +40,6 @@ export const DataTable = function DataTable({ type }: DataTableProps) {
     key: keyof TableFiltersType,
     value: SupportedChainName | number | boolean | null
   ) => {
-    console.log(`[${type}] Filter change:`, key, '=', value);
     setFilters(prev => ({
       ...prev,
       [key]: value,
@@ -48,7 +47,6 @@ export const DataTable = function DataTable({ type }: DataTableProps) {
   };
 
   const handleClearFilters = () => {
-    console.log(`[${type}] Clearing filters`);
     setFilters({
       chain: null,
       minVolume: null,
@@ -76,16 +74,11 @@ export const DataTable = function DataTable({ type }: DataTableProps) {
   }, [infiniteData]);
 
   const filteredData = useMemo(() => {
-    console.log(`[${type}] Filtering data with filters:`, filters);
-    console.log(`[${type}] Raw data length:`, memoizedData.length);
-
     const filtered = memoizedData.filter(token => {
-      // Chain filter
       if (filters.chain && chainIdToName(token.chainId) !== filters.chain) {
         return false;
       }
 
-      // Volume filter
       if (
         filters.minVolume &&
         parseFloat(token.volume || '0') < filters.minVolume
@@ -93,7 +86,6 @@ export const DataTable = function DataTable({ type }: DataTableProps) {
         return false;
       }
 
-      // Age filter
       if (filters.maxAge) {
         const tokenAge = new Date(token.age);
         const now = new Date();
@@ -104,7 +96,6 @@ export const DataTable = function DataTable({ type }: DataTableProps) {
         }
       }
 
-      // Market Cap filter
       if (filters.minMarketCap) {
         let marketCapValue = '0';
         if (token.currentMcap && token.currentMcap !== '0') {
@@ -125,7 +116,6 @@ export const DataTable = function DataTable({ type }: DataTableProps) {
         }
       }
 
-      // Honeypot filter
       if (filters.excludeHoneypots && token.honeyPot) {
         return false;
       }
@@ -133,7 +123,6 @@ export const DataTable = function DataTable({ type }: DataTableProps) {
       return true;
     });
 
-    console.log(`[${type}] Filtered data length:`, filtered.length);
     return filtered;
   }, [memoizedData, filters, type]);
 

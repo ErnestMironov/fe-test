@@ -34,7 +34,6 @@ export const useDataTableState = ({
     return '0';
   };
 
-  // Process filtered data and update table state
   useEffect(() => {
     const processedData = filteredData.map(token => ({
       ...token,
@@ -46,7 +45,6 @@ export const useDataTableState = ({
       processedData.map(token => token.pairAddress)
     );
 
-    // Clean up visible tokens - keep only those that still exist
     setVisibleTokens(prev => {
       const filtered = new Set<string>();
       prev.forEach(tokenId => {
@@ -57,7 +55,6 @@ export const useDataTableState = ({
       return filtered;
     });
 
-    // Clean up subscribed tokens - keep only those that still exist
     setSubscribedTokens(prev => {
       const filtered = new Set<string>();
       prev.forEach(tokenId => {
