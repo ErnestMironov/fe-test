@@ -280,10 +280,10 @@ export const createDataTableColumns = () => [
   columnHelper.accessor('contractVerified', {
     header: 'Audit',
     cell: info => {
-      const honeyPot = info.row.original.honeyPot;
-      const mintable = info.row.original.mintable;
-      const freezable = info.row.original.freezable;
-      const burned = info.row.original.burned;
+      const honeyPot = !info.row.original.honeyPot;
+      const mintable = info.row.original.isMintAuthDisabled;
+      const freezable = info.row.original.isFreezeAuthDisabled;
+      const burned = info.row.original.liquidityLocked;
 
       return (
         <div className="flex flex-col items-center space-y-1">

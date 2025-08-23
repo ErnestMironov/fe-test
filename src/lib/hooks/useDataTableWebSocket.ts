@@ -144,8 +144,8 @@ export const useDataTableWebSocket = ({
                 contractVerified: statsData.pair.isVerified,
                 contractRenounced: statsData.pair.mintAuthorityRenounced,
                 honeyPot: statsData.pair.token1IsHoneypot,
-                mintable: statsData.pair.mintAuthorityRenounced,
-                freezable: statsData.pair.freezeAuthorityRenounced,
+                isMintAuthDisabled: statsData.pair.mintAuthorityRenounced,
+                isFreezeAuthDisabled: statsData.pair.freezeAuthorityRenounced,
                 burned: parseFloat(statsData.pair.burnedSupply || '0') > 0,
               };
             }
