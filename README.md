@@ -18,6 +18,20 @@ src/
 └── test/               # Test setup and utilities
 ```
 
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+# or
+yarn
+
+# Start development server
+npm run dev
+# or
+yarn dev
+```
+
 ## Dependencies
 
 ### Core
