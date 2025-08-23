@@ -32,6 +32,10 @@ npm run dev
 yarn dev
 ```
 
+## Live Demo
+
+🌐 **Live Application**: [https://keen-rolypoly-08554d.netlify.app/](https://keen-rolypoly-08554d.netlify.app/)
+
 ## Dependencies
 
 ### Core
